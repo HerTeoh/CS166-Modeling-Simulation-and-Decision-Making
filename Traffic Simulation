@@ -1,0 +1,121 @@
+import random
+import scipy
+
+class TrafficSimulation(object):
+
+    def __init__(self, RLength, TDensity, MaxV, SDown):
+        '''
+        Initialises a number of important variables
+        '''
+        # Length of the road
+        self.RoadLength = RLength
+        
+        # Density of cars on the road
+        self.TrafficDensity = TDensity
+        
+        # Maximum velocity cars will travel at
+        self.MaximumVelocity = MaxV
+        
+        # The probability that a car will slow down
+        self.ProbSlowingDown = SDown
+        
+        # The number of cars on the road
+        self.NumberOfCars = int(self.TrafficDensity*self.RoadLength)
+        
+    def set_cars(self):
+        '''
+        Sets the cars onto the road randomly
+        '''
+        # creates a [RoadLength] element long scipy array of zeroes 
+        self.road = scipy.zeros(self.RoadLength)
+        
+        # randomises where the cars are initialised
+        self.cars = random.sample(xrange(0, self.RoadLength - 1), self.NumberOfCars)
+        
+        # changes the zeroes to a -1 in the scipy array
+        for i in range(0, self.RoadLength):
+            self.road[i] = -1
+            
+        # randomises the velocity of the cars
+        for j in self.cars:
+            self.road[j] = random.randint(0,self.MaximumVelocity)
+        
+        return self.cars
+    
+    def update(self):
+        '''
+        Updates the movement and velocity of the cars by one time step
+        '''
+        self.cars.sort()        
+        for c in range(len(self.cars)):
+            
+            # Calculates the distance between one car and the next
+            distance = ((self.cars[(c+1)%self.NumberOfCars]) - (self.cars[c]))%self.RoadLength
+            
+            # Rule 1:
+            if self.road[self.cars[c]] < self.MaximumVelocity and distance > self.road[self.cars[c]] + 1:
+                # Increase velocity by one
+                self.road[self.cars[c]] += 1
+            
+            # Rule 2:
+            if distance <= self.road[self.cars[c]]:
+                # Decrease velocity by one
+                self.road[self.cars[c]] = distance - 1
+            
+            # Rule 3:
+            if self.road[self.cars[c]] > 0 and random.uniform(0,1) < self.ProbSlowingDown:
+                self.road[self.cars[c]] -= 1
+        
+        for c in range(len(self.cars)):     
+            # Rule 4:
+            velocity = int(self.road[self.cars[c]])
+            position = self.cars[c]
+            self.road[(position + velocity)%self.RoadLength] = velocity
+            
+            # if the car doesn't move, we don't reset it to an empty cell
+            if self.road[position] > 0:
+                self.road[position] = -1
+            
+            self.cars[c] = int((position + velocity)%self.RoadLength)
+            
+            # If a car travels past the 'end', we add one to the flow count
+            if position + velocity > self.RoadLength:
+                self.flow += 1
+            
+    def display(self):
+        '''
+        Displays each line of the time step in a visual way
+        '''
+        print(''.join('.' if x == -1 else str(int(x)) for x in self.road))
+
+    def visualise(self, runs = 20):
+        '''
+        Prints each time step out
+        '''
+        count = 0
+        while count < runs:
+            self.update()
+            self.display()
+            count += 1        
+        
+    def traffic_flow(self, runs = 20):
+        '''
+        Returns the traffic flow of x time steps
+        '''
+        count = 0
+        self.flow = 0
+        while count < runs:
+            self.update()
+            count += 1
+        return float(self.flow)/runs
+    
+    def traffic_flows(self, runs = 20, times = 200):
+        '''
+        Prints a list of x traffic flows based on y time steps
+        '''
+        self.flows = []
+        count = 0
+        while count < times:
+            self.flows.append(self.traffic_flow(runs))
+            count += 1
+        return self.flows
