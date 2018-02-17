@@ -86,8 +86,10 @@ class TrafficSimulation(object):
         '''
         Displays each line of the time step in a visual way
         '''
-        print(''.join('.' if x == -1 else str(int(x)) for x in self.road))
-
+        for x in range(self.lanes):
+            print(''.join('.' if x == -1 else str(int(x)) for x in self.road[x, :]))
+        print("\n")
+        
     def visualise(self, runs = 20):
         '''
         Prints each time step out
