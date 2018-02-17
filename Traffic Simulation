@@ -26,19 +26,23 @@ class TrafficSimulation(object):
         '''
         Sets the cars onto the road randomly
         '''
-        # creates a [RoadLength] element long scipy array of zeroes 
-        self.road = scipy.zeros(self.RoadLength)
-        
+        self.road = -numpy.ones(self.RoadLength, dtype = int)
+        for lane in range(self.lanes - 1):
+            lane = -numpy.ones(self.RoadLength, dtype = int)
+            self.road = numpy.vstack((self.road, lane))
+
         # randomises where the cars are initialised
-        self.cars = random.sample(xrange(0, self.RoadLength - 1), self.NumberOfCars)
-        
-        # changes the zeroes to a -1 in the scipy array
-        for i in range(0, self.RoadLength):
-            self.road[i] = -1
-            
+        for car in range(self.NumberOfCars):
+            lane = random.choice(range(self.lanes))
+            position = random.choice(range(self.RoadLength))
+            self.cars[car, 0] = lane
+            self.cars[car, 1] = position
+    
         # randomises the velocity of the cars
-        for j in self.cars:
-            self.road[j] = random.randint(0,self.MaximumVelocity)
+        for index in range(self.NumberOfCars):
+            lane = int(self.cars[index, 0])
+            position = int(self.cars[index, 1])
+            self.road[lane, position] = random.randint(0, self.MaximumVelocity)
         
         return self.cars
     
