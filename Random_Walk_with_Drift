@@ -1,0 +1,57 @@
+import random
+import numpy as np
+import matplotlib.pyplot as plt
+
+class random_walk(object):
+    
+    def __init__(self, steps, samples):
+        self.steps = steps
+        self.samples = samples
+
+    def step(self):
+        return (1 if random.uniform(0, 1) < 0.6 else -1)
+
+    def randomwalk(self):
+        taken = self.steps
+        where = 0
+        walk = []
+        while taken != 0:
+            where += step()
+            walk.append(where)
+            taken -= 1
+        return walk
+
+    def sample(self):
+        plt.plot(randomwalk(self.steps), range(0,self.steps))
+        plt.show()
+        
+    def sampling_plot(self):
+        taken = self.samples
+        finals = []
+        while taken != 0:
+            finals.append(self.randomwalk()[-1])
+            taken -= 1
+        plt.hist(finals)
+        plt.show()
+    
+    def mean_and_variance(self):
+        taken = self.samples
+        finals = []
+        while taken != 0:
+            finals.append(self.randomwalk()[-1])
+            taken -= 1
+        return np.mean(finals), np.var(finals)
+
+
+
+# initialising
+test = random_walk(30, 200)
+
+# sample path
+test.sample()
+
+# plot histogram
+test.sampling_plot()
+
+# getting the mean
+test.mean_and_variance()
