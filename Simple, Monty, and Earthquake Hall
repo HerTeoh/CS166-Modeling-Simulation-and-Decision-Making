@@ -1,0 +1,132 @@
+import random
+
+def Simple_Hall(trials):
+    '''
+    The Simple Hall:
+    The contestant picks a door.
+    The host opens the contestant's choice.
+    We find out if the contestant wins the car.
+    '''
+    # trial count
+    count = 0
+    
+    # number of times contestant wins the car
+    wins_car = 0
+    
+    while count != trials:
+        # randomly assigns the car to a door
+        door_with_car = random.randint(1,3)
+        
+        # contestant picks a door at random
+        contestant_init_choice = random.randint(1,3)
+        
+        # the host reveals the contestant's choice
+        if door_with_car == contestant_init_choice:
+            wins_car += 1 
+            
+        count += 1
+        
+    return("%r successes out of %r trials for a success rate of %r percent" %
+          (wins_car, trials, (float(wins_car)/trials)*100))
+    
+def Monty_Hall(trials, switch = True):
+    '''
+    The Monty Hall:
+    The contestant picks a door.
+    The host opens a door (that is not the contestant's) to reveal a goat.
+    The contestant gets to switch their initial choice.
+    We find out if the contestant wins the car.
+    '''
+    
+    # checks for boolean value and returns error message if not
+    if switch != True and switch != False:
+        return("Please assign switch parameter with either True or False")
+    
+    # trial count
+    count = 0
+    
+    # number of times contestant wins the car
+    wins_car = 0
+    
+    while count != trials:
+        # randomly assigns the car to a door
+        door_with_car = random.randint(1,3)
+        
+        # contestant picks a door at random
+        contestant_init_choice = random.randint(1,3)
+        
+        # host randomly picks between the remaining doors that are not the contestant's choice
+        # or the door with the car
+        host_reveal_goat = random.choice(list({1,2,3} - {door_with_car, contestant_init_choice}))
+        
+        if switch == True:
+            # if the contestant chooses to switch doors, there is only one door to switch to
+            contestant_final_choice = list({1, 2, 3} - {host_reveal_goat, contestant_init_choice})[0]
+        else:
+            # if not, the final choice is the same as the contestant's initial choice
+            contestant_final_choice = contestant_init_choice
+        
+        # the host reveals the contestant's choice
+        if door_with_car == contestant_final_choice:
+            wins_car += 1 
+            
+        count += 1
+        
+    return("%r successes out of %r trials for a success rate of %r percent" %
+          (wins_car, trials, (float(wins_car)/trials)*100))
+
+def Earthquake_Hall(trials, switch = True):
+    '''
+    The Earthquake Hall:
+    The contestant picks a door.
+    An earthquake occurs and a door opens at random.
+    In this scenario, the door that is opened is not the contestant's choice nor the one with the car.
+    The contestant gets to switch their initial choice.
+    We find out if the contestant wins the car.
+    '''
+    
+    # checks for boolean value and returns error message if not
+    if switch != True and switch != False:
+        return("Please assign switch parameter with either True or False")
+    
+    # trial count
+    count = 0
+    
+    # number of times contestant wins the car
+    wins_car = 0
+    
+    while count != trials:
+        # randomly assigns the car to a door
+        door_with_car = random.randint(1,3)
+        
+        # contestant picks a door at random
+        contestant_init_choice = random.randint(1,3)
+        
+        # earthquake opens a door at random
+        earthquake_door = random.randint(1,3)
+        
+        # if the door chosen by the contestant and opened by the earthquake are the same
+        # we restart the while loop
+        if earthquake_door == contestant_init_choice:
+            continue
+        
+        # if the door opened by the earthquake and the door with the car are the same
+        # we restart the while loop
+        if earthquake_door == door_with_car:
+            continue
+            
+        if switch == True:
+            # if the contestant chooses to switch doors, there is only one door to switch to
+            contestant_final_choice = int({1, 2, 3} - {earthquake_door, contestant_init_choice})
+        else:
+            # if not, the final choice is the same as the contestant's initial choice
+            contestant_final_choice = contestant_init_choice
+        
+        # the host reveals the contestant's choice
+        if door_with_car == contestant_final_choice:
+            wins_car += 1
+            
+        count += 1
+        
+    return("%r successes out of %r trials for a success rate of %r percent" %
+          (wins_car, trials, (float(wins_car)/trials)*100))
