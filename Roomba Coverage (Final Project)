@@ -1,0 +1,71 @@
+import random
+import numpy as np
+from matplotlib import colors
+import matplotlib.pyplot as plt
+from tqdm import tqdm
+
+class roomba_vroomba(object):
+    
+    def __init__(self, width, depth):
+        '''
+        Initilisation of the size of the room, the current position of the roomba,
+        and the battery life remaining.
+        '''
+        # input for number of rows
+        self.depth = depth
+        
+        # input for number of columns
+        self.width = width
+        
+        # numpy array of zeroes for the size of the room
+        self.floor_plan = np.zeros((self.depth, self.width))
+        
+        # presets the roomba to the top left corner of the room
+        self.current_position_x = random.randint(0,self.depth-1)
+        self.current_position_y = random.randint(0,self.width-1)
+        
+        # presets a battery life of 100 steps
+        self.remaining_battery_life = 1000
+        
+        # for measurement purposes the full battery life is stored
+        self.full_battery_life = 1000
+    
+    def visualise(self):
+        '''
+        Sets the Roomba machine to be distinct from the floor and prints out a 
+        bird's eye view of the room.
+        
+        Blue: Roomba machine
+        Black: Obstacle
+        Dark Brown: Dirty floor
+        Medium Brown: Less dirty floor
+        Light Brown: Almost clean floor
+        White: Clean floor
+        '''
+        # creates a copy of the floor plan
+        temp = np.copy(self.floor_plan)
+        
+        # identifies the roomba and makes it distinct
+        temp[self.current_position_x, self.current_position_y] = 5
+        
+        # prints the remaining battery life
+        print "%r battery life remaining" % self.remaining_battery_life
+                
+        # the colour map for the different degrees of cleanliness, obstacles,
+        # and the Roomba
+        cmap = colors.ListedColormap(['sienna','darksalmon','mistyrose','white',
+                                      'black','dodgerblue'])
+        bounds = [0,1,2,3,4,5]
+        plt.imshow(temp, interpolation='nearest', cmap = cmap, vmin=0, vmax=5)
+        plt.title('Bird\'s eye view of the floor')
+        plt.tight_layout()
+        plt.show()
+        
+    def obstacle_input(self, obstacles):
+        '''
+        Allows the addition of obstacles onto the floor plan that the Roomba
+        will not tread over.
+        '''
+        # assigns each obstacles onto the floor plan by assigning it a value of 4
+        for i in obstacles:
+            self.floor_plan[i[0], i[1]] = 4
