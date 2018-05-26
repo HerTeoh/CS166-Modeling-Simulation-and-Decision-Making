@@ -69,3 +69,56 @@ class roomba_vroomba(object):
         # assigns each obstacles onto the floor plan by assigning it a value of 4
         for i in obstacles:
             self.floor_plan[i[0], i[1]] = 4
+    def walk(self):
+        '''
+        A random walk algorithm that examines which tiles around the Roomba it can go
+        to next and picks one regardless of cleanliness to Roomba over.
+        '''
+        # since this is not a periodic boundary condition, candidates for the next
+        # step are determined here
+        candidates = []
+        if 0 <= self.current_position_x+1 <= self.depth-1 and self.floor_plan[self.current_position_x+1, self.current_position_y] < 4:
+            candidates.append([self.current_position_x+1, self.current_position_y])
+        if 0 <= self.current_position_x-1 <= self.depth-1 and self.floor_plan[self.current_position_x-1, self.current_position_y] < 4:
+            candidates.append([self.current_position_x-1, self.current_position_y])
+        if 0 <= self.current_position_y+1 <= self.depth-1 and self.floor_plan[self.current_position_x, self.current_position_y+1] < 4:
+            candidates.append([self.current_position_x, self.current_position_y+1])
+        if 0 <= self.current_position_y-1 <= self.depth-1 and self.floor_plan[self.current_position_x, self.current_position_y-1] < 4:
+            candidates.append([self.current_position_x, self.current_position_y-1])
+        
+        # the next position is a random choice of the candidates
+        next_position = random.choice(candidates)
+
+        # updates the cleanliness of the floor
+        if self.floor_plan[self.current_position_x, self.current_position_y] < 3:
+            self.floor_plan[self.current_position_x, self.current_position_y] += 1
+        
+        # updates the new position and the battery life
+        self.current_position_x = next_position[0]
+        self.current_position_y = next_position[1]
+        self.remaining_battery_life -= 1
+    
+    def take_a_walk(self, steps, images):
+        '''
+        Using the number of steps and images requested, uses the random walk
+        algorithm until the battery runs out, the floor has been Roomba'ed at least
+        3 times, or the number of steps has been achieved.
+        '''
+        for i in range(images):
+            for j in range(steps/images):
+                
+                # checks if the Roomba still has charge left in the battery
+                if self.remaining_battery_life == 0:
+                    print'Battery Life at 0, please charge me.'
+                    self.visualise()
+                    return self.full_battery_life
+                
+                # checks if the room has been Roomba'ed at least 3 times over
+                if (self.floor_plan >= 3).all():
+                    print "The room is clean!"
+                    self.visualise()
+                    return self.full_battery_life - self.remaining_battery_life
+                
+                # otherwise, continue updating the steps using the center spiral
+                # algorithm
+                self.walk()
