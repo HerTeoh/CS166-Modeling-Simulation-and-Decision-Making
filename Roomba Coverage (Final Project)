@@ -69,6 +69,130 @@ class roomba_vroomba(object):
         # assigns each obstacles onto the floor plan by assigning it a value of 4
         for i in obstacles:
             self.floor_plan[i[0], i[1]] = 4
+           
+    def semi_gradient_descent(self):
+        '''
+        Dubbed the semi gradient descent method, the roomba remembers how many
+        time it has crossed a particular tile and opts to clean the tiles that
+        have not been least Roomba'ed.
+        '''        
+        # since this is not a periodic boundary condition, candidates for the next
+        # step are determined here
+        candidates = []
+        if 0 <= self.current_position_x+1 <= self.depth-1:
+            candidates.append([self.current_position_x+1, self.current_position_y])
+        if 0 <= self.current_position_x-1 <= self.depth-1:
+            candidates.append([self.current_position_x-1, self.current_position_y])
+        if 0 <= self.current_position_y+1 <= self.depth-1:
+            candidates.append([self.current_position_x, self.current_position_y+1])
+        if 0 <= self.current_position_y-1 <= self.depth-1:
+            candidates.append([self.current_position_x, self.current_position_y-1])
+        
+        # the least Roomba'ed tile is selected as the next tile to be Roomba'ed
+        lowest = random.choice(candidates)
+        for i in candidates:
+            if self.floor_plan[i[0], i[1]] < self.floor_plan[lowest[0], lowest[1]]:
+                lowest = i
+        
+        # the floor can only be cleaned to a degree of 3, and each time the Roomba
+        # runs over a tile, it increases in degree of cleanliness by 1
+        if self.floor_plan[self.current_position_x, self.current_position_y] < 3:
+            self.floor_plan[self.current_position_x, self.current_position_y] += 1
+        
+        # updates the position of the Roomba and declines its battery life
+        self.current_position_x = lowest[0]
+        self.current_position_y = lowest[1]
+        self.remaining_battery_life -= 1
+
+    def descend_gradients(self, steps, images):
+        '''
+        Using the number of steps and images requested, uses the semi_gradient_descent
+        algorithm until the battery runs out, the floor has been Roomba'ed at least
+        3 times, or the number of steps has been achieved.
+        '''
+        for i in range(images):
+            for j in range(steps/images):
+                
+                # checks if the Roomba still has charge left in the battery
+                if self.remaining_battery_life == 0:
+                    print'Battery Life at 0, please charge me.'
+                    self.visualise()
+                    return self.full_battery_life
+                
+                # checks if the room has been Roomba'ed at least 3 times over
+                if (self.floor_plan >= 3).all():
+                    print "The room is clean!"
+                    self.visualise()
+                    return self.full_battery_life - self.remaining_battery_life
+                
+                # otherwise, continue updating the steps using the semi gradient
+                # descent algorithm
+                self.semi_gradient_descent()
+
+    def spiral(self):
+        '''
+        An outward spiral algorithm, the algorithm is supposed to turn right every time
+        the right tile is just as dirty as the tile in front. If it isn't then it goes
+        straight. *it seems however that this algorithm is actually a turn left spiral?
+        '''
+
+        # directions using x, y coordinates
+        up, down, left, right = (0, -1), (0, 1), (-1, 0), (1, 0)
+        
+        # right turn directions
+        right_turn = {up:right, right:down, down:left, left:up}
+        
+        # updates the cleanliness of the current position
+        if self.floor_plan[self.current_position_x, self.current_position_y] < 3:
+            self.floor_plan[self.current_position_x, self.current_position_y] += 1
+
+        # try to turn right
+        new_dx, new_dy = right_turn[self.dx, self.dy]
+        new_x, new_y = self.current_position_x + new_dx, self.current_position_y + new_dy
+
+        # accepts right turn if it is still within the bounds of the room and the next 
+        # tile is dirtier than the current tile
+        if 0 <= new_x <= self.depth-1 and 0 <= new_y <= self.width-1 and self.floor_plan[new_x, new_y] < self.floor_plan[self.current_position_x, self.current_position_y]:
+            # updates positions and battery life
+            self.current_position_x, self.current_position_y = new_x, new_y
+            self.dx, self.dy = new_dx, new_dy
+            self.remaining_battery_life -= 1
+        # go straight if turning right isn't an option
+        elif 0 <= self.current_position_x + self.dx <= self.depth-1 and 0 <= self.current_position_y + self.dy <= self.width-1:
+            self.current_position_x, self.current_position_y = self.current_position_x + self.dx, self.current_position_y + self.dy
+            self.remaining_battery_life -= 1
+        # otherwise use the semi gradient descent algorithm to find the next 
+        # dirtiest patch around the Roomba
+        else:
+            self.semi_gradient_descent()
+        
+    def spiral_away(self, steps, images):
+        '''
+        Using the number of steps and images requested, uses the spiral algorithm 
+        until the battery runs out, the floor has been Roomba'ed at least 3 times, 
+        or the number of steps has been achieved.
+        '''
+        # sets the initial direction to be upwards
+        self.dx, self.dy = (0, -1)
+
+        for i in range(images):
+            for j in range(steps/images):
+                
+                # checks if the Roomba still has charge left in the battery
+                if self.remaining_battery_life == 0:
+                    print'Battery Life at 0, please charge me.'
+                    self.visualise()
+                    return self.full_battery_life
+                
+                # checks if the room has been Roomba'ed at least 3 times over
+                if (self.floor_plan >= 3).all():
+                    print "The room is clean!"
+                    self.visualise()
+                    return self.full_battery_life - self.remaining_battery_life
+                
+                # otherwise, continue updating the steps using the spiral algorithm
+                self.spiral()
+           
     def walk(self):
         '''
         A random walk algorithm that examines which tiles around the Roomba it can go
